@@ -1,77 +1,59 @@
-README
-Overview
-This script processes FASTQ files by demultiplexing them into sample-specific FASTQ files based on nucleotide patterns and rules defined in a CSV file. The script extracts a region of each read depending on a specified start pattern, an optional contain pattern, and an optional insert length.
+# FASTQ Demultiplexing Script
 
-Requirements
-Python 3
+## 🧬 Overview
+This script processes FASTQ files by demultiplexing them into sample-specific FASTQ files based on nucleotide patterns and rules defined in a CSV file. It extracts regions of each read depending on a specified start pattern, an optional contain pattern, and an optional insert length.
 
-Biopython (for handling FASTQ file parsing and sequence manipulation)
+---
 
-Standard Python libraries: csv, re, and glob
+## 📦 Requirements
+- Python 3
+- [Biopython](https://biopython.org/) (for handling FASTQ parsing and sequence manipulation)
+- Standard Python libraries: `csv`, `re`, and `glob`
 
-Input Files
-Demultiplex.csv
+---
 
-This CSV file should contain a header and the following columns for each sample:
+## 📂 Input Files
 
-sample_name: Identifier for the sample.
+### `Demultiplex.csv`
+This CSV file should include a header row and the following columns for each sample:
 
-start_pattern: The starting nucleotide pattern to search for in each read.
+- `sample_name`: Identifier for the sample.
+- `start_pattern`: Nucleotide pattern to match at the start of a read.
+- `contain_pattern` *(optional)*: A sequence that must appear after the start pattern. 'N' is treated as a wildcard.
+- `insert_length` *(optional)*: Number of bases to extract after the start pattern.
 
-contain_pattern (optional): A pattern that must be present after the start pattern. Uses 'N' as a wildcard matching any nucleotide.
+**Extraction behavior based on insert length and contain pattern:**
+- If `contain_pattern` is provided: extracts sequence between `start_pattern` and `contain_pattern`.
+- If `insert_length = 0` or blank and no `contain_pattern`: extracts from the end of `start_pattern` to the end of the read.
+- If `insert_length > 0` and no `contain_pattern`: extracts that number of bases from the end of the start pattern.
 
-insert_length (optional): Number of bases to extract after the start pattern. If set to 0 or left blank, the behavior varies:
+### FASTQ Files
+Place all input FASTQ files to be processed in the same directory as the script.
 
-If a contain pattern is provided, the script extracts the sequence between the start pattern and the contain pattern.
+> ⚠️ Output FASTQ files (named `<sample_name>.fastq`) will be skipped if present in the directory.
 
-If no contain pattern is provided and insert length is 0, the script extracts all sequence from the end of the start pattern to the end of the read.
+---
 
-If insert length is greater than 0 without a contain pattern, exactly that number of bases is extracted.
+## 📤 Output Files
 
-FASTQ Files
+- **Sample FASTQ Files**:  
+  Each sample in the CSV gets a file named `<sample_name>.fastq` with the demultiplexed and trimmed reads.
 
-Place all FASTQ files you wish to process in the same directory as the script.
+- **`read_assignment_counts.txt`**:  
+  Summarizes how many reads from each input FASTQ file were assigned to each sample.
 
-Note: The script excludes FASTQ files that are generated as output (i.e., files named <sample_name>.fastq).
+- **Unique Sequences Files**:  
+  For each sample, a file named `<sample_name>_unique_sequences.txt` lists all unique sequences and their counts.
 
-Output Files
-Sample FASTQ Files:
-For each sample specified in the CSV file, a separate FASTQ file (named <sample_name>.fastq) is created containing the trimmed reads assigned to that sample.
+---
 
-read_assignment_counts.txt:
-This file contains a summary of the read assignments. It includes counts of reads assigned for each input FASTQ file and a total count per sample.
+## ▶️ How to Use
 
-Unique Sequences Files:
-For each sample, a text file named <sample_name>_unique_sequences.txt is created. This file lists unique deplexed sequences along with their counts.
+1. **Prepare Input Files**
+   - Edit `Demultiplex.csv` with pattern rules for each sample.
+   - Place all input FASTQ files in the same directory as the script.
 
-How to Use
-Prepare the Input Files:
+2. **Run the Script**
 
-Edit the Demultiplex.csv file to include the appropriate pattern rules for your samples.
-
-Place all input FASTQ files (excluding output files) in the working directory.
-
-Run the Script:
-Execute the script using Python:
-
-bash
-Copy
-python your_script_name.py
-Replace your_script_name.py with the actual name of the script file.
-
-Review the Outputs:
-
-Check the sample-specific FASTQ files for correctly trimmed reads.
-
-Open read_assignment_counts.txt to verify the assignment counts per file and overall.
-
-Review each <sample_name>_unique_sequences.txt file for a breakdown of unique sequences.
-
-Additional Notes
-The script automatically adjusts quality scores (if available) when trimming reads.
-
-If no contain pattern is provided, different extraction rules apply based on the provided insert length.
-
-Ensure that the output FASTQ filenames do not conflict with the names of the input FASTQ files.
-
-For any modifications or troubleshooting, review the inline code logic relating to how patterns are converted into regex objects.
+   ```bash
+   python your_script_name.py
